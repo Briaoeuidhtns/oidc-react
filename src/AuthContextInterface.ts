@@ -107,4 +107,8 @@ export interface AuthContextProps {
    * See [User](https://github.com/IdentityModel/oidc-client-js/wiki#user) for more details.
    */
   userData?: User | null;
+  /**
+   * True if the user is currently being retrieved
+   */
+  loading: boolean;
 }

@@ -71,6 +71,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({
   ...props
 }) => {
   const [userData, setUserData] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const userManager = initUserManager(props);
 
@@ -81,25 +82,29 @@ export const AuthProvider: FC<AuthProviderProps> = ({
 
   useEffect(() => {
     const getUser = async (): Promise<void> => {
-      /**
-       * Check if the user is returning back from OIDC.
-       */
-      if (hasCodeInUrl(location)) {
-        await userManager.signinRedirectCallback();
-        const user = await userManager.getUser();
-        setUserData(user);
-        onSignIn && onSignIn(user);
-        return;
-      }
+      try {
+        /**
+         * Check if the user is returning back from OIDC.
+         */
+        if (hasCodeInUrl(location)) {
+          await userManager.signinRedirectCallback();
+          const user = await userManager.getUser();
+          setUserData(user);
+          onSignIn && onSignIn(user);
+          return;
+        }
 
-      const user = await userManager!.getUser();
-      if ((!user || user.expired) && autoSignIn) {
-        onBeforeSignIn && onBeforeSignIn();
-        userManager.signinRedirect();
-      } else {
-        setUserData(user);
+        const user = await userManager!.getUser();
+        if ((!user || user.expired) && autoSignIn) {
+          onBeforeSignIn && onBeforeSignIn();
+          userManager.signinRedirect();
+        } else {
+          setUserData(user);
+        }
+        return;
+      } finally {
+        setLoading(false);
       }
-      return;
     };
     getUser();
   }, [location]);
@@ -120,6 +125,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({
         },
         userManager,
         userData,
+        loading,
       }}
     >
       {children}
